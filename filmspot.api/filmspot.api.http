@@ -1,0 +1,6 @@
+@filmspot.api_HostAddress = http://localhost:5170
+
+GET {{filmspot.api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
