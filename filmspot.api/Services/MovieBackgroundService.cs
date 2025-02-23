@@ -21,7 +21,6 @@ public class MovieBackgroundService : BackgroundService
 		using (var scope = _serviceProvider.CreateScope())
 		{
 			var movieRepository = scope.ServiceProvider.GetRequiredService<IMovieRepository>();
-
 			var httpClient = _httpClientFactory.CreateClient();
 
 			//Fetch showings from TMDB
@@ -44,25 +43,38 @@ public class MovieBackgroundService : BackgroundService
 
 			//Deserialize response
 			var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-			var movieData = JsonSerializer.Deserialize<TmdbShowingsResponse>(body, options);
-
-			if (movieData == null)
+			var movieData = JsonSerializer.Deserialize<TmdbShowingsResponse>(body, options)
+				?? throw new InvalidOperationException("Unable to fetch showings from TMDB");
+			
+			//Check if there is a difference between the API result and the movies stored in the db
+			//If there is then set "IsShowing" to false for the ones that exist in the DB but not in the API 
+			//This is because they are no longer showing in the cinema
+			var currentShowings = await movieRepository.GetCurrentShowingsAsync();
+			var movieTitlesFromApi = movieData.Results.Select(s => s.Title).ToList();
+			
+			var removedMovies = currentShowings.Where(m => !movieTitlesFromApi.Contains(m.Title)).ToList();
+			if (removedMovies.Count > 0)
 			{
-				throw new InvalidOperationException("Unable to fetch showings from TMDB");
+				foreach (var movie in removedMovies)
+				{
+					movie.IsShowing = false;
+				}
 			}
+			
+			//Add new movies to the database
+			var movieTitlesFromDb = currentShowings.Select(s => s.Title).ToList();
+			var newMovies = movieData.Results
+				.Where(m => !movieTitlesFromDb.Contains(m.Title))
+				.Select(m => m.ToMovie())
+				.ToList();
 
-			//Create movie from each result and add it to the db
-			foreach (var tmdbMovie in movieData.Results)
+			if (newMovies.Count > 0)
 			{
-				var movie = tmdbMovie.ToMovie();
-
-				//Check that it doesn't already exist
-				var existingMovie = await movieRepository.GetMovieByNameAsync(movie.Title);
-				if (existingMovie != null) continue;
-
-				await movieRepository.AddAsync(movie);
+				foreach (var movie in newMovies)
+				{
+					await movieRepository.AddAsync(movie);
+				}
 			}
-
 			await movieRepository.SaveAsync();
 		}
 	}
