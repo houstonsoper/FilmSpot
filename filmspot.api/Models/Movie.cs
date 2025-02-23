@@ -19,6 +19,6 @@ public class Movie
 	
 	[Required(ErrorMessage = "Release date is required")]
 	public required DateTime ReleaseDate { get; set; }
+	
+	public bool IsShowing { get; set; }
 }
-
-//https://image.tmdb.org/t/p/original -> postpath  /pzIddUEMWhWzfvLI3TwxUG2wGoi.jpg

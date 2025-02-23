@@ -12,7 +12,8 @@ public static class MovieExtension
 			Title = tmdbMovie.Title,
 			Overview = tmdbMovie.Overview,
 			PosterPath = "https://image.tmdb.org/t/p/original" + tmdbMovie.Poster_Path,
-			ReleaseDate = DateTime.Parse(tmdbMovie.Release_Date)
+			ReleaseDate = DateTime.Parse(tmdbMovie.Release_Date),
+			IsShowing = true
 		};
 	}
 }

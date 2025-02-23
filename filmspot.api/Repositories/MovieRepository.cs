@@ -15,4 +15,10 @@ public class MovieRepository : GenericRepository<Movie>, IMovieRepository
 		var query = GetAllQuery();
 		return await query.FirstOrDefaultAsync(m => m.Title.Contains(movieName));
 	}
+
+	public async Task<List<Movie>> GetCurrentShowingsAsync()
+	{
+		var query = GetAllQuery();
+		return await query.Where(m => m.IsShowing == true).ToListAsync();
+	}
 }
