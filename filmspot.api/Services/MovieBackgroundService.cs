@@ -37,9 +37,9 @@ public class MovieBackgroundService : BackgroundService
 					}
 				},
 			};
-			var response = await httpClient.SendAsync(request);
+			var response = await httpClient.SendAsync(request, stoppingToken);
 			response.EnsureSuccessStatusCode();
-			var body = await response.Content.ReadAsStringAsync();
+			var body = await response.Content.ReadAsStringAsync(stoppingToken);
 
 			//Deserialize response
 			var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };

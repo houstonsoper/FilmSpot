@@ -18,7 +18,7 @@ public class MovieController : ControllerBase
 	[HttpGet]
 	public async Task<IActionResult> GetMovies()
 	{
-		var movies = await _movieRepository.GetAllAsync();
+		var movies = await _movieRepository.GetCurrentShowingsAsync();
 		return Ok(movies);
 	}
 }
